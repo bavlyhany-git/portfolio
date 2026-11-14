@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 export const sb = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)
 export const defaults = {
-  profile: { name: 'Bavly Hany', title: 'Front-End Developer', location: 'Bani Mazar, Minya, Egypt', phone: '+20 1270811658', email: 'bavlyhanyisaac@gmail.com', linkedin: 'https://linkedin.com/in/bavlyhany', github: 'https://github.com/bavlyhany-git',
+  profile: { photo: '', name: 'Bavly Hany', title: 'Front-End Developer', location: 'Bani Mazar, Minya, Egypt', phone: '+20 1270811658', email: 'bavlyhanyisaac@gmail.com', linkedin: 'https://linkedin.com/in/bavlyhany', github: 'https://github.com/bavlyhany-git',
     summary: 'Results-driven Front-End Developer and Computer Science graduate with hands-on experience building responsive, user-friendly web applications using React.js, JavaScript (ES6+), HTML5, CSS3 and Bootstrap. Currently honing advanced web development skills through the Digital Egypt Pioneers Initiative (DEPI) scholarship. Passionate about translating complex UI/UX designs into clean, efficient code.' },
   skills: [{ a: 'Languages', b: 'HTML5, CSS3, JavaScript (ES6+)' }, { a: 'Libraries', b: 'React.js, Vite' }, { a: 'Styling & UI', b: 'Bootstrap, Responsive Web Design' }, { a: 'Tools', b: 'Git, GitHub, REST APIs, DOM Manipulation' }, { a: 'Soft Skills', b: 'Problem Solving, Time Management, Communication, Team Collaboration, Attention to Detail' }],
   projects: [
@@ -14,3 +14,4 @@ export const fetchData = async () => { const { data } = await sb.from('site_data
 export const saveData = async d => { const { data, error } = await sb.from('site_data').upsert({ id: 1, data: d }).select(); return error || (!data?.length ? { message: 'لم يتم الحفظ. تأكد من تشغيل supabase.sql ومن تسجيل الدخول' } : null) }
 export const logEvent = (type, label = '') => sb.from('events').insert({ type, label })
 export const fetchStats = async () => { const { data } = await sb.from('events').select('type,label,created_at').order('created_at', { ascending: false }).limit(5000); const s = { visits: 0, days: {}, clicks: {} }; (data || []).forEach(e => { if (e.type === 'visit') { s.visits++; const k = e.created_at.slice(0, 10); s.days[k] = (s.days[k] || 0) + 1 } else s.clicks[e.label] = (s.clicks[e.label] || 0) + 1 }); return s }
+export const uploadImage = async f => { const name = Date.now() + '-' + f.name.replace(/[^\w.-]/g, '_'); const { error } = await sb.storage.from('media').upload(name, f); if (error) throw error; return sb.storage.from('media').getPublicUrl(name).data.publicUrl }
