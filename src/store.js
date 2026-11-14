@@ -1,0 +1,16 @@
+import { createClient } from '@supabase/supabase-js'
+export const sb = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)
+export const defaults = {
+  profile: { name: 'Bavly Hany', title: 'Front-End Developer', location: 'Bani Mazar, Minya, Egypt', phone: '+20 1270811658', email: 'bavlyhanyisaac@gmail.com', linkedin: 'https://linkedin.com/in/bavlyhany', github: 'https://github.com/bavlyhany-git',
+    summary: 'Results-driven Front-End Developer and Computer Science graduate with hands-on experience building responsive, user-friendly web applications using React.js, JavaScript (ES6+), HTML5, CSS3 and Bootstrap. Currently honing advanced web development skills through the Digital Egypt Pioneers Initiative (DEPI) scholarship. Passionate about translating complex UI/UX designs into clean, efficient code.' },
+  skills: [{ a: 'Languages', b: 'HTML5, CSS3, JavaScript (ES6+)' }, { a: 'Libraries', b: 'React.js, Vite' }, { a: 'Styling & UI', b: 'Bootstrap, Responsive Web Design' }, { a: 'Tools', b: 'Git, GitHub, REST APIs, DOM Manipulation' }, { a: 'Soft Skills', b: 'Problem Solving, Time Management, Communication, Team Collaboration, Attention to Detail' }],
+  projects: [
+    { id: 1, title: 'E-Commerce Store App', tech: 'JavaScript, Bootstrap, HTML5', desc: 'Clean, modern interfaces using Bootstrap for seamless mobile and desktop responsiveness.', link: '', image: '' },
+    { id: 2, title: 'Dynamic To-Do List', tech: 'React.js, JavaScript, CSS3', desc: 'Interactive task manager to add, edit, delete and filter tasks with React state management.', link: '', image: '' },
+    { id: 3, title: 'API Data Display & Form App', tech: 'React.js, Bootstrap, REST APIs', desc: 'Fetches and dynamically displays data from public APIs using asynchronous JavaScript.', link: '', image: '' }],
+  education: [{ a: 'Software Development - React Frontend Web Developer', b: 'Digital Egypt Pioneers Initiative (DEPI)', c: 'Jul 2026 - Dec 2026' }, { a: 'Web Fundamentals', b: 'Information Technology Institute (ITI)', c: '2024' }, { a: 'B.Sc. Computer Science', b: 'Minya University, Al Minya', c: 'Sep 2020 - Jul 2024' }],
+  platforms: [{ a: 'Upwork', b: 'https://www.upwork.com/freelancers/~01d54fbc256480071d?viewMode=1' }, { a: 'Mostaql', b: 'https://mostaql.com/u/bavlyhanyisaac' }, { a: 'Khamsat', b: 'https://khamsat.com/user/bavlyhanyisaac' }, { a: 'Nafezly', b: 'https://nafezly.com/u/Bavly_Hany_Isaac' }, { a: 'Kafiil', b: 'https://kafiil.com/u/bavly_hany' }, { a: 'FreelanceYard', b: 'https://freelanceyard.com/ar/freelancers/bavly-hany-2' }]}
+export const fetchData = async () => { const { data } = await sb.from('site_data').select('data').eq('id', 1).maybeSingle(); return { ...defaults, ...(data?.data || {}) } }
+export const saveData = d => sb.from('site_data').upsert({ id: 1, data: d })
+export const logEvent = (type, label = '') => sb.from('events').insert({ type, label })
+export const fetchStats = async () => { const { data } = await sb.from('events').select('type,label,created_at').order('created_at', { ascending: false }).limit(5000); const s = { visits: 0, days: {}, clicks: {} }; (data || []).forEach(e => { if (e.type === 'visit') { s.visits++; const k = e.created_at.slice(0, 10); s.days[k] = (s.days[k] || 0) + 1 } else s.clicks[e.label] = (s.clicks[e.label] || 0) + 1 }); return s }
