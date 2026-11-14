@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { sb, fetchData, saveData, logEvent, fetchStats } from './store'
 
 const useHash = () => { const [h, s] = useState(location.hash); useEffect(() => { const f = () => s(location.hash); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, []); return h }
@@ -36,14 +36,16 @@ function Login() {
 
 const Lines = ({ rows, keys, onChange, hint }) => <><textarea rows={Math.max(4, rows.length + 1)} value={rows.map(r => keys.map(k => r[k]).join(' | ')).join('\n')} onChange={e => onChange(e.target.value.split('\n').filter(l => l.trim()).map(l => Object.fromEntries(keys.map((k, i) => [k, (l.split('|')[i] || '').trim()]))))} /><small>{hint}</small></>
 
-function Admin({ d, set, out }) {
+function Admin({ d, set, out, save }) {
+  const [ms, sMs] = useState('')
+  const doSave = async () => { sMs('جاري الحفظ...'); const e = await save(); sMs(e ? 'فشل: ' + e.message : 'تم الحفظ ✓') }
   const [st, setSt] = useState({ visits: 0, days: {}, clicks: {} }); useEffect(() => { fetchStats().then(setSt) }, [])
   const [tab, setTab] = useState('dash'), [np, sNp] = useState({ u: '', old: '', p: '' }), [msg, sMsg] = useState('')
   const up = fn => { const n = structuredClone(d); fn(n); set(n) }
   const tabs = { dash: 'الداشبورد', profile: 'بياناتي', skills: 'المهارات', projects: 'مشاريعي', edu: 'التعليم', plat: 'المنصات', sec: 'الأمان' }
   const days = [...Array(7)].map((_, i) => { const k = new Date(Date.now() - (6 - i) * 864e5).toISOString().slice(0, 10); return [k.slice(5), st.days[k] || 0] }), mx = Math.max(1, ...days.map(x => x[1]))
   const chg = async e => { e.preventDefault(); if (np.p.length < 6) return sMsg('كلمة المرور الجديدة قصيرة'); const { error } = await sb.auth.updateUser({ ...(np.u && { email: np.u }), password: np.p }); sMsg(error ? error.message : 'تم التحديث ✓ (لو غيرت الإيميل هيوصلك تأكيد)') }
-  return <div className="admin" dir="rtl"><aside><b>لوحة التحكم</b>{Object.entries(tabs).map(([k, v]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{v}</button>)}<a href="#/">عرض الموقع</a><button onClick={out}>خروج</button><Theme /></aside>
+  return <div className="admin" dir="rtl"><aside><b>لوحة التحكم</b><button className="btn" onClick={doSave}>💾 حفظ التغييرات</button>{ms && <small>{ms}</small>}{Object.entries(tabs).map(([k, v]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{v}</button>)}<a href="#/">عرض الموقع</a><button onClick={out}>خروج</button><Theme /></aside>
     <section className="panel">
       {tab === 'dash' && <><h3>الداشبورد</h3><div className="grid"><div className="card stat"><b>{st.visits}</b>إجمالي الزيارات</div><div className="card stat"><b>{st.days[today()] || 0}</b>زيارات اليوم</div><div className="card stat"><b>{d.projects.length}</b>المشاريع</div></div>
         <div className="card"><h4>آخر 7 أيام</h4><div className="bars">{days.map(([k, v]) => <div key={k}><i style={{ height: v / mx * 100 + '%' }} title={v} /><small>{k}</small></div>)}</div></div>
@@ -59,12 +61,12 @@ function Admin({ d, set, out }) {
 }
 
 export default function App() {
-  const h = useHash(), [d, setD] = useState(null), [ok, setOk] = useState(false), [ready, setReady] = useState(false), t = useRef()
+  const h = useHash(), [d, setD] = useState(null), [ok, setOk] = useState(false), [ready, setReady] = useState(false)
   const isAdmin = h.startsWith('#/admin')
   useEffect(() => { fetchData().then(setD); sb.auth.getSession().then(({ data }) => { setOk(!!data.session); setReady(true) }); const { data: l } = sb.auth.onAuthStateChange((_, s) => setOk(!!s)); return () => l.subscription.unsubscribe() }, [])
   useEffect(() => { if (!isAdmin && !sessionStorage.getItem('v')) { sessionStorage.setItem('v', '1'); logEvent('visit') } }, [isAdmin])
-  const set = n => { setD(n); clearTimeout(t.current); t.current = setTimeout(() => saveData(n), 700) }
+  const save = () => saveData(d)
   if (!d || !ready) return <div className="login">...</div>
-  if (isAdmin) return ok ? <Admin d={d} set={set} out={() => sb.auth.signOut()} /> : <Login />
+  if (isAdmin) return ok ? <Admin d={d} set={setD} save={save} out={() => sb.auth.signOut()} /> : <Login />
   return <Public d={d} track={k => logEvent('click', k)} />
 }
