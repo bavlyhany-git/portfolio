@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { sb, fetchData, saveData, logEvent, fetchStats, uploadImage, sendMessage, fetchMessages, deleteMessage } from './store'
 const tx = (v, l) => (v && typeof v === 'object' ? v[l] || v.ar || '' : v || '')
 const today = () => new Date().toISOString().slice(0, 10)
-const T = { ar: { about: 'نبذة', skills: 'المهارات', projects: 'المشاريع', education: 'التعليم والتدريب', platforms: 'اعمل معي عبر', contact: 'تواصل معي', avail: 'متاح للعمل الحر', hire: 'تواصل معي', visit: 'زيارة الموقع ←', name: 'الاسم', email: 'الإيميل', msg: 'رسالتك', send: 'إرسال', sent: 'تم الإرسال ✓', fail: 'تعذر الإرسال' },
-  en: { about: 'About', skills: 'Skills', projects: 'Projects', education: 'Education', platforms: 'Hire me on', contact: 'Contact', avail: 'Available for freelance', hire: 'Contact me', visit: 'Visit site →', name: 'Name', email: 'Email', msg: 'Your message', send: 'Send', sent: 'Sent ✓', fail: 'Could not send' } }
+const T = { ar: { about: 'نبذة', skills: 'المهارات', projects: 'المشاريع', education: 'التعليم والتدريب', platforms: 'اعمل معي', contact: 'تواصل معي', avail: 'متاح للعمل الحر', hire: 'تواصل معي', visit: 'زيارة الموقع ←', name: 'الاسم', email: 'الإيميل', msg: 'رسالتك', send: 'إرسال', sent: 'تم الإرسال ✓', fail: 'تعذر الإرسال' },
+  en: { about: 'About', skills: 'Skills', projects: 'Projects', education: 'Education', platforms: 'Hire me', contact: 'Contact', avail: 'Available for freelance', hire: 'Contact me', visit: 'Visit site →', name: 'Name', email: 'Email', msg: 'Your message', send: 'Send', sent: 'Sent ✓', fail: 'Could not send' } }
 const useHash = () => { const [h, s] = useState(location.hash); useEffect(() => { const f = () => s(location.hash); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, []); return h }
 function Theme() {
   const [t, setT] = useState(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
@@ -30,7 +30,7 @@ function Public({ d, track }) {
       <section id="education"><h3>{t.education}</h3><div className="timeline">{d.education.map((e, i) => <div className="card" key={i}><h4>{tx(e.a, l)}</h4><p>{tx(e.b, l)}</p><small>{e.c}</small></div>)}</div></section>
       <section id="platforms"><h3>{t.platforms}</h3><div className="chips big">{d.platforms.map(x => <a key={x.a} href={x.b} target="_blank" rel="noreferrer" onClick={() => track(x.a)}>{x.a} ↗</a>)}</div></section>
       <section id="contact"><h3>{t.contact}</h3><div className="grid two"><form className="card" onSubmit={send}><input required placeholder={t.name} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /><input required type="email" dir="ltr" placeholder={t.email} value={f.email} onChange={e => setF({ ...f, email: e.target.value })} /><textarea required rows="4" placeholder={t.msg} value={f.body} onChange={e => setF({ ...f, body: e.target.value })} /><button className="btn">{t.send}</button>{st && <p>{st}</p>}</form>
-        <div className="card contact"><a href={'mailto:' + p.email}>✉ {p.email}</a><a href={'tel:' + p.phone.replace(/\s/g, '')} dir="ltr">☎ {p.phone}</a></div></div></section>
+        <div className="card contact"><a href={'mailto:' + p.email}>✉ {p.email}</a><a href={'tel:' + p.phone.replace(/\s/g, '')}> ☎ {p.phone}</a></div></div></section>
     </main><footer>© {new Date().getFullYear()} {tx(p.name, l)}</footer></>
 }
 
